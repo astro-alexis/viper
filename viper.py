@@ -587,16 +587,16 @@ def fit_chunk(order, chunk, obsname, targ=None, tpltarg=None):
             S_mod = model(S_star, lnwave_j, spec_cell_j, specs_molec, IP, **modset)
             
         # modeled telluric spectrum
-        spec_model = np.nan * np.empty_like(pixel)
-        spec_model[iset] = S_mod(pixel[iset], **par)
-        spec_model /= np.nanmedian(spec_model[iset])
+        gas_model = np.nan * np.empty_like(pixel)
+        gas_model[iset] = S_mod(pixel[iset], **par)
+        gas_model /= np.nanmedian(gas_model[iset])
 
         # telluric corrected spectrum
-        spec_cor = spec_obs / spec_model
-        err_cor = err_obs / spec_model
+        spec_cor = spec_obs / gas_model
+        err_cor = err_obs / gas_model
 
         # remove regions with strong telluric lines
-        spec_cor[spec_model<0.2] = np.nan
+        spec_cor[gas_model<0.2] = np.nan
         #spec_cor[spec_cor<3*err_cor] = np.nan
         spec_cor[spec_cor<0.01] = np.nan
 
@@ -612,12 +612,14 @@ def fit_chunk(order, chunk, obsname, targ=None, tpltarg=None):
             # apply no barycentric correction 
             bervt = 0
         
+        # applying BERV and RV shift to corrected spectrum
+        # get all observations to same wavelength grid before co-adding
         spec_cor = np.interp(wave_model, wave_model*(1+bervt/c)/(1+par.rv/c), spec_cor/np.nanmedian(spec_cor))
         spec_cor /= np.nanmedian(spec_cor)
 
         # downweighting by telluric spectrum and errors
-        weight = spec_model / (err_cor/np.nanmedian(spec_cor))**2
-        # weight[spec_model<0.2] = 0.00001   # downweight deep telluric lines
+        weight = gas_model / (err_cor/np.nanmedian(spec_cor))**2
+        # weight[gas_model<0.2] = 0.00001   # downweight deep telluric lines        
         weight = np.interp(wave_model, wave_model*(1+bervt/c)/(1+par.rv/c), weight)
 
         # save telluric corrected spectrum
@@ -973,7 +975,8 @@ if createtpl:
                 weight_t[nn][weight_t[nn]==0] = np.nan
 
             if kapsig_ctpl:
-                spec_mean = np.nansum(spec_t*weight_t, axis=0) / np.nansum(weight_t, axis=0)
+              #  spec_mean = np.nansum(spec_t*weight_t, axis=0) / np.nansum(weight_t, axis=0)
+                spec_mean = np.nanmedian(spec_t, axis=0)
                 for nn in range(0, len(spec_t)):
                     weight_t[nn][np.abs(spec_t[nn]-spec_mean)>kapsig_ctpl] = np.nan
 
