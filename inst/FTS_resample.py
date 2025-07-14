@@ -12,21 +12,33 @@ def FTSfits(ftsname):
 
     if ftsname.endswith(".dat"):
         data = np.loadtxt(ftsname)
-        w = data[:,0]
-        f = data[:,1]
+        w = data[:, 0]
+        f = data[:, 1]
         f = f[::-1]
         w = 1e8 / w[::-1]
-    else:
-        hdu = fits.open(ftsname, ignore_blank=True, output_verify='silentfix')[0]
-
-        f = hdu.data[::-1]
-        h = hdu.header
-        try:
-            w = h['CRVAL1'] + h['CDELT1'] * (np.arange(f.size) + 1. - h['CRPIX1'])
-        except:
-            # for OES
-            w = h['CRVAL1'] + h['CDELT1'] * (np.arange(f.size) + 1.)
-        w = 1e8 / w[::-1]   # convert wavenumbers to wavelength [angstrom]
+    elif ftsname.endswith(".fits"):
+        hdu = fits.open(ftsname, ignore_blank=True, output_verify='silentfix')
+      
+        hdr = hdu[0].header        
+        cdelt1 = hdr.get('CDELT1', 'none')
+        
+        if cdelt1 == 'none':
+            wavetype = hdr.get('wavetype', 'none')
+            unit = hdr.get('unit', 'none')
+            w = hdu[1].data['wave']
+            f = hdu[1].data['flux']#[::-1]
+            
+            if wavetype == 'wavenumber':  w = 1e8 / w[::-1]
+            if unit == 'nm': w *= 10
+        
+        else:
+            f = hdu[0].data[::-1]
+            try:
+                w = hdr['CRVAL1'] + hdr['CDELT1'] * (np.arange(f.size) + 1. - hdr['CRPIX1'])
+            except:
+                # for OES
+                w = hdr['CRVAL1'] + hdr['CDELT1'] * (np.arange(f.size) + 1.)
+            w = 1e8 / w[::-1]   # convert wavenumbers to wavelength [angstrom]
 
     return w, f
 
