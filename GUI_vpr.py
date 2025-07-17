@@ -13,6 +13,7 @@ from tkinter.scrolledtext import ScrolledText
 from utils.hbox import Help_Box
 
 import numpy as np
+from astropy.io import fits
 import re
 import sys
 try:
