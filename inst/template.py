@@ -9,11 +9,27 @@ from astropy.constants import c
 from astropy.io import fits
 from .airtovac import airtovac
 
+
 def read_tpl(tplname, inst='inst_TLS.py', order=20, targ='None', wmin=3500, wmax=8000):
 
     successful_read = 0
     
-    if tplname.endswith('_s1d_A.fits') or tplname.endswith('.tpl.s1d.fits'):
+    hdu = fits.open(tplname, ignore_blank=True, output_verify='silentfix')
+    hdr = hdu[0].header
+    p3orig = hdr.get('P3ORIG', 'none')
+
+    if str(p3orig) == 'IDP':
+        # direct read-in of spectra with ESO phase-3 format
+        # from https://archive.eso.org/scienceportal/home
+        # (HARPS, ESPRESSO, UVES ect)        
+        f = hdu[1].data        
+        wave = f[0][0]
+        spec = f[0][1]         
+        wave = airtovac(wave)
+        
+        successful_read = 1
+    
+    elif tplname.endswith('_s1d_A.fits') or tplname.endswith('.tpl.s1d.fits'):
         print('read HARPS template', tplname)
         
         hdu = fits.open(tplname)[0]
