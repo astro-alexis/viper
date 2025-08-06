@@ -27,8 +27,8 @@ iset = '380:1700'
 ip_guess = {'s': 300_000/80_000/ (2*np.sqrt(2*np.log(2))) }   # convert FHWM resolution to sigma
 
 def Spectrum(filename='', order=None, targ=None):
-    hdu = fits.open(filename, ignore_blank=True)[0]
-    hdr = hdu.header
+    hdu = fits.open(filename, ignore_blank=True)
+    hdr = hdu[0].header
 
     dateobs = hdr['DATE-OBS']
     exptime = hdr['EXPOSURE']
@@ -44,7 +44,6 @@ def Spectrum(filename='', order=None, targ=None):
     de = float(de[0]) + float(de[1])/60 + float(de[2])/3600
     if offs: de *= -1
 
-
     targdrs = SkyCoord(ra=ra*u.deg, dec=de*u.deg)
     if not targ: targ = targdrs
     midtime = Time(dateobs, format='isot', scale='utc') + exptime/2. * u.s
@@ -53,15 +52,25 @@ def Spectrum(filename='', order=None, targ=None):
     berv = berv.to(u.km/u.s).value
     bjd = midtime.tdb
 
-    spec = hdu.data
-    spec /= np.nanmean(spec)
-    gg = readmultispec(filename, reform=True, quiet=True)
-    wave = gg['wavelen']
-    wave = airtovac(wave)
+    if len(hdu) == 1:
+        # for spectra reduced with the IRAF package
+        spec = hdu[0].data
+        spec /= np.nanmean(spec)
+        gg = readmultispec(filename, reform=True, quiet=True)
+        wave = gg['wavelen']
+        wave = airtovac(wave)
+        iraf = 1
+    else:
+        # for spectra reduced with the ceres+ pipeline
+        iraf = 0
+        wave = hdu[0].data
+        spec = hdu[3].data	# de-blazed spectrum
+       #spec = hdu[5].data	# continuum-normalized spectrum
+    
     if order is not None:
          wave, spec= wave[order], spec[order]
        
-    if '20241202' not in str(filename):     
+    if '20241202' not in str(filename) and iraf == 1:     
         wave = wave[::-1]
         spec = spec[::-1]
 
