@@ -36,8 +36,7 @@ def Spectrum(filename='', order=None, targ=None):
     ra = hdr.get('RA', np.nan)                        
     de = hdr.get('DEC', np.nan)
     
-    offs = 0
-    if str(de)[0] == '-': offs = 1
+    offs = de.startswith('-')
     ra = ra.split(':')
     de = de[offs:].split(':')
     ra = (float(ra[0]) + float(ra[1])/60 + float(ra[2])/3600) * 15
@@ -59,20 +58,14 @@ def Spectrum(filename='', order=None, targ=None):
         gg = readmultispec(filename, reform=True, quiet=True)
         wave = gg['wavelen']
         wave = airtovac(wave)
-        iraf = 1
     else:
         # for spectra reduced with the ceres+ pipeline
-        iraf = 0
         wave = hdu[0].data
         spec = hdu[3].data	# de-blazed spectrum
        #spec = hdu[5].data	# continuum-normalized spectrum
     
     if order is not None:
          wave, spec= wave[order], spec[order]
-       
-    if '20241202' not in str(filename) and iraf == 1:     
-        wave = wave[::-1]
-        spec = spec[::-1]
 
     pixel = np.arange(spec.size) 
     err = np.ones(spec.size)*0.1
