@@ -27,7 +27,7 @@ bg_color = '#e6e1e1'    # bg color small frames
 bg_button = "#fdfdfd"   # bg buttons
 
 win_width = 1060    # width of GUI window	
-win_high = 800      # height of GUI window	
+win_high = 805      # height of GUI window	
 xy0 = 20
 y1 = 3
 x1 = 10
@@ -51,6 +51,7 @@ class GUI_viper:
         self.cb_atm = []       # Checkboxes telluric molecules 
         self.cbv_atm = []      # Variables telluric molecules
         self.cb_lookctpl = IntVar()
+        self.cb_noRV = IntVar()
 
         self.master = master
         self.configs = configs
@@ -164,7 +165,7 @@ class GUI_viper:
         lfr_data = LabelFrame(fr2, text="Data", bg=bg_frame, bd=2)
         lfr_data.grid(row=1, column=0, sticky="news", padx=(10, 0), pady=y1, ipady=5)
 
-        lfr_model = LabelFrame(fr2, text="Model Setup", bg=bg_frame, bd=2)
+        lfr_model = LabelFrame(fr2, text="Setup", bg=bg_frame, bd=2)
         lfr_model.grid(row=1, column=1, sticky="news", padx=(10, 10), pady=y1, ipady=5)
 
         lfr_tpl = LabelFrame(fr2, text="Template", bg=bg_frame, bd=2)
@@ -196,7 +197,7 @@ class GUI_viper:
         l_opt.grid(row=0, column=0, sticky="nw", padx=(xy0, 0), pady=(10, y1), columnspan=3)
 
         self.Label_list(lfr_data, ['nset', 'oset', 'chunks', 'vcut', 'iset'])
-        self.Label_list(lfr_model, ['ip', 'iphs', 'deg_norm', 'deg_wave', 'deg_bkg'])
+        self.Label_list(lfr_model, ['ip', 'iphs', 'ipB', 'deg_norm', 'deg_wave', 'deg_bkg'])
         self.Label_list(lfr_tpl, ['rv_guess', 'oversampling'])
         self.Label_list(lfr_stat, ['kapsig', 'wgt'])
         self.Label_list(lfr_out, ['tag', 'output_format'])
@@ -208,7 +209,7 @@ class GUI_viper:
         # Entry
         self.e_nset = Entry(lfr_data)
         self.e_nset.insert(0, ':4')
-        self.e_nset.grid(row=0, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
+        self.e_nset.grid(row=0, column=1, sticky="nw", padx=(x1, xy0), pady=(0, 0))
 
         self.e_oset = Entry(lfr_data)
         self.e_oset.insert(0, self.configs.get('oset', '20'))
@@ -228,18 +229,22 @@ class GUI_viper:
         self.e_iphs = Entry(lfr_model)
         self.e_iphs.insert(0, self.configs.get('iphs', '50'))
         self.e_iphs.grid(row=1, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
+        
+        self.e_ipB = Entry(lfr_model)
+        self.e_ipB.insert(0, self.configs.get('ipB', ''))
+        self.e_ipB.grid(row=2, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
 
         self.e_deg_norm = Entry(lfr_model)
         self.e_deg_norm.insert(0, self.configs.get('deg_norm', '3'))
-        self.e_deg_norm.grid(row=2, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
+        self.e_deg_norm.grid(row=3, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
 
         self.e_deg_wave = Entry(lfr_model)
         self.e_deg_wave.insert(0, self.configs.get('deg_wave', '3'))
-        self.e_deg_wave.grid(row=3, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
+        self.e_deg_wave.grid(row=4, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
 
         self.e_deg_bkg = Entry(lfr_model)
         self.e_deg_bkg.insert(0, self.configs.get('deg_bkg', '1'))
-        self.e_deg_bkg.grid(row=4, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
+        self.e_deg_bkg.grid(row=5, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
 
         self.e_vg = Entry(lfr_tpl)
         self.e_vg.insert(0, self.configs.get('rv_guess', '1'))
@@ -247,15 +252,15 @@ class GUI_viper:
 
         self.e_overs = Entry(lfr_tpl)
         self.e_overs.insert(0, self.configs.get('oversampling', '1'))
-        self.e_overs.grid(row=1, column=1, sticky="nw", padx=(x1, xy0), pady=0)
+        self.e_overs.grid(row=1, column=1, sticky="nw", padx=(x1, xy0), pady=(y1, 0))
 
         self.e_kapsig = Entry(lfr_stat)
         self.e_kapsig.insert(0, self.configs.get('kapsig', '4.5'))
-        self.e_kapsig.grid(row=0, column=1, sticky="nw", padx=(x1, xy0), pady=y1)
+        self.e_kapsig.grid(row=0, column=1, sticky="nw", padx=(x1, xy0), pady=(0, y1))
 
         self.e_tag = Entry(lfr_out)
         self.e_tag.insert(0, self.configs.get('tag', 'tmp'))
-        self.e_tag.grid(row=0, column=1, sticky="news", padx=(xy0, 10), pady=y1, columnspan=3)
+        self.e_tag.grid(row=0, column=1, sticky="news", padx=(xy0, 10), pady=0, columnspan=3)
 
         # Checkboxes:
         self.cb_createtpl = IntVar()
@@ -272,22 +277,22 @@ class GUI_viper:
         Help_Box(widget=l_create, text=text_from_file("'-createtpl'"))
 
         l_dat = ttk.Checkbutton(lfr_out, text="  .dat", variable=self.cb_format[0])
-        l_dat.grid(row=1, column=1, sticky="nw", padx=(xy0, 5), pady=y1)
+        l_dat.grid(row=1, column=1, sticky="nw", padx=(xy0, 5), pady=(y1, 0))
         self.cb_format[0].set(1)
 
         l_fits = ttk.Checkbutton(lfr_out, text="  .fits (astropy)", variable=self.cb_format[1])
-        l_fits.grid(row=1, column=2, sticky="nw", padx=5, pady=y1)
+        l_fits.grid(row=1, column=2, sticky="nw", padx=5, pady=(y1, 0))
 
         l_cpl = ttk.Checkbutton(lfr_out, text="  .fits (CPL)", variable=self.cb_format[2])
-        l_cpl.grid(row=1, column=3, sticky="nw", padx=5, pady=y1)
+        l_cpl.grid(row=1, column=3, sticky="nw", padx=5, pady=(y1, 0))
 
         self.combo_ip = ttk.Combobox(lfr_model, values=[*IPs])  # IPs from model.py
         self.combo_ip.set(self.configs.get('ip', 'g'))
-        self.combo_ip.grid(row=0, column=1, sticky="nw", padx=(x1, xy0), pady=y1)
+        self.combo_ip.grid(row=0, column=1, sticky="nw", padx=(x1, xy0), pady=0)
 
         self.combo_tell = ttk.Combobox(self.lfr_tell, values=['', 'add', 'add2', 'mask', 'sig'], width=14)
         self.combo_tell.set(self.configs.get('telluric', 'mask'))
-        self.combo_tell.grid(row=0, column=1, sticky="nw", padx=(x1), pady=y1, columnspan=2)
+        self.combo_tell.grid(row=0, column=1, sticky="nw", padx=(x1), pady=(0, y1), columnspan=2)
         self.combo_tell.bind('<<ComboboxSelected>>', lambda event: self.Update_tell())
 
     def fr_plot(self):
@@ -357,7 +362,7 @@ class GUI_viper:
         self.cb_lookfast.set(1)
 
         l_look = ttk.Checkbutton(lfr_plot2, text="     look:", variable=self.cb_look)
-        l_look.grid(row=1, column=0, sticky="nw", padx=(xy0, x1), pady=y1)
+        l_look.grid(row=1, column=0, sticky="nw", padx=(xy0, x1), pady=(y1, 0))
         Help_Box(widget=l_look, text=text_from_file("'-look'"))
 
     def bt_file(self, e_file):
@@ -391,6 +396,7 @@ class GUI_viper:
         if hasattr(self, 'l_wavetpl'): self.l_wavetpl.destroy()
         if hasattr(self, 'combo_wtpl'): self.combo_wtpl.destroy()
         if hasattr(self, 'l_lookctpl'): self.l_lookctpl.destroy()
+        if hasattr(self, 'l_noRV'): self.l_noRV.destroy()
 
         if self.cb_createtpl.get():
             self.l_kapctpl = ttk.Label(self.lfr_ctpl, text='kapsig_ctpl:')
@@ -402,17 +408,22 @@ class GUI_viper:
             self.e_kapctpl.grid(row=3, column=1, sticky="nw", padx=(x1, xy0), pady=y1)
             
             self.l_wavetpl = ttk.Label(self.lfr_ctpl, text='tpl_wave:')
-            self.l_wavetpl.grid(row=2, column=0, sticky="nw", padx=(xy0, 0), pady=y1)
+            self.l_wavetpl.grid(row=4, column=0, sticky="nw", padx=(xy0, 0), pady=y1)
             Help_Box(widget=self.l_wavetpl, text=text_from_file("'-tpl_wave'"))
             
             self.combo_wtpl = ttk.Combobox(self.lfr_ctpl, values=['initial', 'berv', 'tell'], width=8) 
             self.combo_wtpl.set(self.configs.get('tpl_wave', 'initial'))
-            self.combo_wtpl.grid(row=2, column=1, sticky="nw", padx=(x1, xy0), pady=y1)
+            self.combo_wtpl.grid(row=4, column=1, sticky="nw", padx=(x1, xy0), pady=y1)
 
             self.l_lookctpl = ttk.Checkbutton(self.lfr_ctpl, text="     lookctpl", variable=self.cb_lookctpl)
             self.l_lookctpl.grid(row=1, column=0, sticky="nw", padx=(xy0, x1), pady=y1)
             Help_Box(widget=self.l_lookctpl, text=text_from_file("'-lookctpl'"))
             self.cb_lookctpl.set(1)
+            
+            self.l_noRV = ttk.Checkbutton(self.lfr_ctpl, text="     tpl_noRV", variable=self.cb_noRV)
+            self.l_noRV.grid(row=2, column=0, sticky="nw", padx=(xy0, x1), pady=y1)
+            Help_Box(widget=self.l_noRV, text=text_from_file("'-tpl_noRV'"))
+            self.cb_noRV.set(0)
 
     def Update_tell(self):
         if hasattr(self, 'l_tsig'): self.l_tsig.destroy()
@@ -461,7 +472,7 @@ class GUI_viper:
                 yi, xi = divmod(m, 3)
                 self.cbv_atm.append(IntVar())
                 c = ttk.Checkbutton(self.lfr_tell, text=" "+mol, variable=self.cbv_atm[m])
-                c.grid(row=4+yi, column=xi, sticky="news", padx=(20, 0), pady=(y1, 0))
+                c.grid(row=4+yi, column=xi, sticky="news", padx=(20, 0), pady=(0, 0))
                 self.cb_atm.append(c)
                 self.cbv_atm[m].set(1)
 
@@ -497,6 +508,7 @@ class GUI_viper:
         str_arg += " -iset " + self.e_iset.get()
         str_arg += " -ip " + self.combo_ip.get() 
         str_arg += " -iphs " + self.e_iphs.get()
+        str_arg += " -ipB " + self.e_ipB.get()
         str_arg += " -deg_norm " + self.e_deg_norm.get() 
         str_arg += " -deg_wave " + self.e_deg_wave.get() 
         str_arg += " -deg_bkg " + self.e_deg_bkg.get()
@@ -541,6 +553,7 @@ class GUI_viper:
         if self.cb_createtpl.get(): 
             str_arg += " -createtpl "
             if self.cb_lookctpl.get(): str_arg += " -lookctpl "
+            if self.cb_noRV.get(): str_arg += " -tpl_noRV "
             if self.combo_wtpl.get():
                 str_arg += " -tpl_wave " + str(self.combo_wtpl.get())
             str_arg += " -kapsig_ctpl " + str(self.e_kapctpl.get()) 
