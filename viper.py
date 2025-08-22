@@ -212,6 +212,7 @@ if __name__ == "__main__" or __name__ == "viper.viper":
     argopt('-targ', help='Target name requested in simbad for coordinates, proper motion, parallax and absolute RV.', dest='targname')
     argopt('-tellshift', nargs='?', help='Variable telluric wavelength shift (one value for all selected molecules).', default=False, const=True, type=int)
     argopt('-telluric', help='Treating tellurics (mask: mask tellurics; sig: downweight tellurics; add: telluric forward modelling with one coeff for each molecule; add2: telluric forward modelling with combined coeff for non-water molecules).', default='', type=str)
+    argopt('-tpl_noRV', nargs='?', help='No stellar RV shift is applied to the telluric corrected spectrum. Just in combination with -createtpl.', default=False, const=True, type=int)
     argopt('-tpl_wave', help='Output wavelength of generated template (initial: take wavelengths from imput file; berv: apply barycentric correction to input wavelengths; tell: updated wavelength solution estimated via telluric lines).', default='initial', type=str)
     argopt('-tsig', help='(Relative) sigma value for weighting tellurics.', default=1, type=float)
     argopt('-vcut', help='Trim the observation to a range valid for the model [km/s]', default=100, type=float)
@@ -614,13 +615,15 @@ def fit_chunk(order, chunk, obsname, targ=None, tpltarg=None):
         
         # applying BERV and RV shift to corrected spectrum
         # get all observations to same wavelength grid before co-adding
-        spec_cor = np.interp(wave_model, wave_model*(1+bervt/c)/(1+par.rv/c), spec_cor/np.nanmedian(spec_cor))
+    #    print('---',int(not tpl_noRV))
+     #   exit()
+        spec_cor = np.interp(wave_model, wave_model*(1+bervt/c)/(1+par.rv/c*int(not tpl_noRV)), spec_cor/np.nanmedian(spec_cor))
         spec_cor /= np.nanmedian(spec_cor)
 
         # downweighting by telluric spectrum and errors
         weight = gas_model / (err_cor/np.nanmedian(spec_cor))**2
         # weight[gas_model<0.2] = 0.00001   # downweight deep telluric lines        
-        weight = np.interp(wave_model, wave_model*(1+bervt/c)/(1+par.rv/c), weight)
+        weight = np.interp(wave_model, wave_model*(1+bervt/c)/(1+par.rv/c*int(not tpl_noRV)), weight)
 
         # save telluric corrected spectrum
         spec_all[order, 0][n] = wave_model   # updated wavelength
@@ -760,8 +763,8 @@ colnums = orders if chunks == 1 else [f'{order}-{ch}' for order in orders for ch
 print('BJD RV e_RV BERV', *map("rv{0} e_rv{0}".format, colnums), 'filename', file=rvounit)
 
 # estimate wavelength range from observation
-pixel, wave0, spec0, err0, flag0, bjd, berv = Spectrum(obsnames[0], order=orders[0])
-pixel, wave1, spec1, err1, flag1, bjd, berv = Spectrum(obsnames[0], order=orders[-1])
+pixel, wave0, spec0, err0, flag0, bjd, berv = Spectrum(obsnames[0], order=orders[0], targ=targ)
+pixel, wave1, spec1, err1, flag1, bjd, berv = Spectrum(obsnames[0], order=orders[-1], targ=targ)
     
 obs_lmin = np.min([wave0[0], wave0[-1], wave1[0], wave1[-1]])
 obs_lmax = np.max([wave0[0], wave0[-1], wave1[0], wave1[-1]])
