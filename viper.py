@@ -334,13 +334,21 @@ def fit_chunk(order, chunk, obsname, targ=None, tpltarg=None):
 
     if demo & 1:
         # pre-look raw input
-        s_cell = slice(*np.searchsorted(wave_cell, [lmin, lmax]))
-        s_tpl = slice(*np.searchsorted(wave_tpl[order], [lmin, lmax]))
-
-        # plot data, template, and iodine with some scaling
+        # plot data, template, iodine, and tellurics with some scaling
         gplot.xlabel('"Vacuum wavelength [Å]"')
         gplot.ylabel('"flux"')
-        gplot(wave_cell[s_cell], spec_cell[s_cell]/np.nanmedian(spec_cell[s_cell]), 'w l lc 9 t "cell",', wave_tpl[order][s_tpl], spec_tpl[order][s_tpl]/np.nanmedian(spec_tpl[order][s_tpl]), 'w l lc 3 t "tpl",', wave_obs, spec_obs/np.nanmedian(spec_obs), 'w lp lc 1 pt 7 ps 0.5 t "obs"')
+        
+        if nocell:    
+            gplot(wave_obs, spec_obs/np.nanmedian(spec_obs), 'w lp lc 1 pt 7 ps 0.5 t "obs"')           
+        else:
+            s_cell = slice(*np.searchsorted(wave_cell, [lmin, lmax]))
+            gplot(wave_cell[s_cell], spec_cell[s_cell]/np.nanmedian(spec_cell[s_cell]), 'w l lc 9 t "cell",', wave_obs, spec_obs/np.nanmedian(spec_obs), 'w lp lc 1 pt 7 ps 0.5 t "obs"')       
+        if tplname:
+            s_tpl = slice(*np.searchsorted(wave_tpl[order], [lmin, lmax]))
+            gplot+(wave_tpl[order][s_tpl], spec_tpl[order][s_tpl]/np.nanmedian(spec_tpl[order][s_tpl]), 'w l lc 3 t "tpl"')
+        if 'add' in telluric:
+            gplot+(np.exp(lnwave_j), np.nanprod(specs_molec, axis=0), 'w l lc 2 t "atm"')
+        
         pause('demo 1: raw input')
 
 
