@@ -66,6 +66,10 @@ def Spectrum(filename='', order=None, targ=None):
     
     if order is not None:
          wave, spec= wave[order], spec[order]
+     
+    if len(hdu) == 1:     
+        wave = wave[::-1]
+        spec = spec[::-1]
 
     pixel = np.arange(spec.size) 
     err = np.ones(spec.size)*0.1
