@@ -186,6 +186,7 @@ if __name__ == "__main__" or __name__ == "viper.viper":
     argopt('-deg_norm_rat', nargs='?', help='Rational polynomial degree of denominator for flux normalisation.', type=int)
     argopt('-deg_wave', nargs='?', help='Polynomial degree for wavelength scale l(x).', default=3, type=int)
     argopt('-demo', nargs='?', help='Demo plots. Use -8 to skip plots 1,2,4).', default=0, const=-1, type=int)
+    argopt('-fix', nargs='*', help='Fix parameter. -fix wave will fix wavelength, as needed for stabilized instruments (like TRES, HARPS).', default=['None'], type=str)
     argopt('-flagfile', help='Use just good region as defined in flag file.', default='', type=str)
     argopt('-infoprec', help='Prints and plots information about precision estimates for the star and the iodine.', action='store_true')
     argopt('-iphs', nargs='?', help='Half size of the IP.', default=50, type=int)
@@ -533,6 +534,8 @@ def fit_chunk(order, chunk, obsname, targ=None, tpltarg=None):
     if 1:
         # par from prefit, (not pre-clip)
         par.wave = parguess.wave   # why?
+        # fix wavelength solution for stabilzied spectographs:
+        if 'wave' in fix: par.wave = fixed(parguess.wave)
         if ipB:
             par.bkg = [(0, 0)]
             par.ipB = [(ipB[0], 0)]
