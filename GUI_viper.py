@@ -27,7 +27,7 @@ bg_color = '#e6e1e1'    # bg color small frames
 bg_button = "#fdfdfd"   # bg buttons
 
 win_width = 1060    # width of GUI window	
-win_high = 805      # height of GUI window	
+win_high = 825      # height of GUI window	
 xy0 = 20
 y1 = 3
 x1 = 10
@@ -67,10 +67,10 @@ class GUI_viper:
         lrun = ttk.Label(master, text='Current command:', background=bg_color)
         lrun.grid(row=2, column=1, sticky="nw", padx=0, pady=(10, 10), columnspan=6)
         self.e_run = ScrolledText(master, background=bg_frame)
-        self.e_run.grid(row=3, column=1, sticky="news", padx=(0, xy0), pady=(0, 10))
+        self.e_run.grid(row=3, column=1, sticky="news", padx=(0, 15), pady=(0, 10))
 
         b_exit = ttk.Button(master, text='EXIT', style='bold.TButton', command=lambda: exit())
-        b_exit.grid(row=4, column=1, sticky="se", padx=(0, xy0), pady=(0, 20))
+        b_exit.grid(row=4, column=1, sticky="se", padx=(0, 15), pady=(0, 20))
 
         b_go = ttk.Button(master, text='Start', style='bold.TButton', command=self.bt_start)
         b_go.grid(row=4, column=1, sticky="se", padx=(0, 180), pady=(0, 20))
@@ -157,7 +157,7 @@ class GUI_viper:
     def fr_para(self):
         # Frame for parameter selection data reduction
         fr2 = Frame(self.master, bg=bg_frame, bd=2, relief='groove')
-        fr2.grid(row=1, column=0, sticky="news", padx=(xy0, 6), pady=(0, 20), rowspan=4)
+        fr2.grid(row=1, column=0, sticky="news", padx=(xy0, 6), pady=(0, 15), rowspan=4)
         fr2.grid_propagate(False)
         fr2.grid_columnconfigure(0, weight=1, uniform='x')
         fr2.grid_columnconfigure(1, weight=1, uniform='x')
@@ -199,7 +199,7 @@ class GUI_viper:
         self.Label_list(lfr_data, ['nset', 'oset', 'chunks', 'vcut', 'iset'])
         self.Label_list(lfr_model, ['ip', 'iphs', 'ipB', 'deg_norm', 'deg_wave', 'deg_bkg'])
         self.Label_list(lfr_tpl, ['rv_guess', 'oversampling'])
-        self.Label_list(lfr_stat, ['kapsig', 'wgt'])
+        self.Label_list(lfr_stat, ['kapsig', 'fix', 'wgt'])
         self.Label_list(lfr_out, ['tag', 'output_format'])
 
         self.l_tell = ttk.Label(self.lfr_tell, text='telluric:')
@@ -258,6 +258,10 @@ class GUI_viper:
         self.e_kapsig.insert(0, self.configs.get('kapsig', '4.5'))
         self.e_kapsig.grid(row=0, column=1, sticky="nw", padx=(x1, xy0), pady=(0, y1))
 
+        self.e_fix = Entry(lfr_stat)
+        self.e_fix.insert(0, self.configs.get('fix', ''))
+        self.e_fix.grid(row=1, column=1, sticky="nw", padx=(x1, xy0), pady=(0, y1))
+
         self.e_tag = Entry(lfr_out)
         self.e_tag.insert(0, self.configs.get('tag', 'tmp'))
         self.e_tag.grid(row=0, column=1, sticky="news", padx=(xy0, 10), pady=0, columnspan=3)
@@ -269,7 +273,7 @@ class GUI_viper:
         
         self.combo_wgt = ttk.Combobox(lfr_stat, values=['None', 'error', 'tell']) 
         self.combo_wgt.set(self.configs.get('wgt', 'None'))
-        self.combo_wgt.grid(row=1, column=1, sticky="nw", padx=(x1, xy0), pady=y1)
+        self.combo_wgt.grid(row=2, column=1, sticky="nw", padx=(x1, xy0), pady=y1)
 
         l_create = ttk.Checkbutton(self.lfr_ctpl, text="     create tpl", variable=self.cb_createtpl, command=self.Update_ctpl)
         self.cb_createtpl.set(self.configs.get('createtpl', 0))
@@ -517,7 +521,8 @@ class GUI_viper:
 
         if self.e_targ.get(): str_arg += " -targ " + str(self.e_targ.get())
         if self.e_tag.get(): str_arg += " -tag " + str(self.e_tag.get())
-        if self.e_kapsig.get(): str_arg += " -kapsig " + str(self.e_kapsig.get()) 
+        if self.e_kapsig.get(): str_arg += " -kapsig " + str(self.e_kapsig.get())
+        if self.e_fix.get(): str_arg += " -fix " + str(self.e_fix.get()) 
       #  if self.cb_wgt.get(): str_arg += " -wgt "
         if self.e_overs.get(): str_arg += " -oversampling " + str(self.e_overs.get())
         if self.cb_lookpar.get(): str_arg += " -lookpar " + self.e_lookpar.get()
@@ -612,7 +617,10 @@ def main():
             
         configs = dict(config[str(config_sect)])  
         if 'kapsig' in configs.keys():
-            configs['kapsig'] = [float(i) for i in (configs['kapsig']).split(' ')]      
+            configs['kapsig'] = [float(i) for i in (configs['kapsig']).split(' ')]
+            
+        if 'fix' in configs.keys():
+            configs['fix'] = [str(i) for i in (configs['fix']).split(' ')]          
 
     GUI_viper(win, configs)
     
